@@ -7,7 +7,7 @@ class ManualPlayer : public Player
 {
 public:
     ManualPlayer(int colour);
-    int getMove(Board b);
+    int getMove(Board& b);
 };
 
 #endif // MANUALPLAYER_H

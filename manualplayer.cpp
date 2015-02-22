@@ -6,7 +6,7 @@ ManualPlayer::ManualPlayer(int colour)
 {
 }
 
-int ManualPlayer::getMove(Board b)  {
+int ManualPlayer::getMove(Board& b)  {
 
     int move;
     bool validMove = false;

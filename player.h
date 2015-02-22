@@ -9,7 +9,7 @@ public:
     int colour_;
 
     Player(int colour);
-    virtual int getMove(Board b) = 0;
+    virtual int getMove(Board& b) = 0;
 };
 
 #endif // PLAYER_H
