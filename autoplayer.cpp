@@ -2,13 +2,10 @@
 #include <iostream>
 
 
-#define DEBUG(x )  // std::cout << "[" << x << "]";
-#define DEBUG2( x ) //  std::cout << "[" << x << "]";
 
 Branch::Branch(Board& b, int move )
     : b_(b)
 {
-   // std::cout << "+[" << b.player << ":" << move << "]";
     PROFILE;
     isValid_ =  b.push_counter(move);
 }
@@ -17,7 +14,6 @@ Branch::Branch(Board& b, int move )
 Branch::~Branch() {
     PROFILE;
     if (isValid_) {
-      //  std::cout << "-";
         b_.pop_counter();
     }
 }
@@ -26,7 +22,7 @@ AutoPlayer::AutoPlayer(int player,int max_ply)
     : Player(player),max_depth(max_ply),
       minPlayer_(3-player),maxPlayer_(player)
 {
-    std::cout << "minPlayer:" << minPlayer_ << " maxPlayer:" << maxPlayer_ << std::endl;
+ //   std::cout << "minPlayer:" << minPlayer_ << " maxPlayer:" << maxPlayer_ << std::endl;
 }
 
 
@@ -35,9 +31,14 @@ AutoPlayer::AutoPlayer(int player,int max_ply)
 #define DTHREE_SCORE 50
 #define STHREE_SCORE 25
 
+
+int move_order[] = { 3,4,2,5,1,6,0 };
+
 int AutoPlayer::getMove(Board& b)
 {
     PROFILE;
+
+    std::cout << "getting move for " << b.player << std::endl;
 
     int alpha = -MIN_SCORE;
     int beta = MIN_SCORE;
@@ -45,7 +46,9 @@ int AutoPlayer::getMove(Board& b)
 
     std::cout << "move chosen: " << index << std::endl;
 
+    return index;
     int move = 0 ;
+
     std::cout << "Player auto: please enter your move (0-6,9)";
     std::cin >> move;
 
@@ -61,8 +64,37 @@ int AutoPlayer::getMove(Board& b)
 
 int AutoPlayer::calculatePosition(int player, Board& b) {
     PROFILE;
-   // DEBUG("L");std::cout << "\n";
-    return 0;
+
+    int score = 0;
+
+    int col=0;
+    int row = 0;
+
+    if (! b.get_last_move(col,row)) {
+        return 0;
+    }
+
+    if (b.win_in_line(player,3,col,row,-1,1) ) {
+        score += 5;
+    }
+
+    if ( b.win_in_line(player,4,col,row,-1,0) ) {
+        score += 5;
+    }
+
+    if (  b.win_in_line(player,4,col,row,-1,-1) ) {
+        score += 5;
+    }
+
+    if ( b.win_in_line(player,4,col,row,0,-1) ) {
+        score += 5;
+    }
+
+    if (player == minPlayer_) {
+        return -score;
+    } else {
+        return score;
+    }
 }
 
 
@@ -80,43 +112,43 @@ int AutoPlayer::maximisePosition(
     int score=0;
 
 
+
     for (int i=0;i<  7 ;++i)   {
-       // if (depth == 0) DEBUG( "\n\n" );
-        DEBUG( "A==" << alpha << ":B==" << beta << ":V==" << score);
-        Branch b(b_,i);
+
+        int evald_move = move_order[i];
+
+        Branch b(b_,evald_move);
 
         if (b.isValid_) {
-            DEBUG("V");
+
             if (b_.win(player)) {
-                DEBUG2( "**W**" );
+
                 score =  WIN_SCORE;
             } else {
                 if (depth < max_depth) {
 
                     score = minimisePosition(b_, depth + 1,alpha , beta);
+
                 } else {
                     score = calculatePosition(player,b_);
                 }
             }
 
             if (score > alpha) {
-                DEBUG("A=" << score);
                 alpha = score;
             }
             if (score > value) {
-                DEBUG( "IDX=" << i)
-                index = i;
+                index = evald_move;
                 value = score;
             }
             if (beta < alpha) {
-                DEBUG("PRUNE_MAX:" << alpha << ":" << beta)
                 break;
             }
         }
     }
 
     if (depth == 0) {
-       // DEBUG( "\n\n");
+
         return index;
     } else {
         return value;
@@ -132,17 +164,27 @@ int AutoPlayer::minimisePosition(
 {
     PROFILE;
 
+
+
     int player = minPlayer_;
     int value = MIN_SCORE;
     int score=0;
-    DEBUG( "A==" << alpha << ":B==" << beta << ":V==" << score);
 
-    for (int i =0; i<7 ; ++i)   {
-        Branch b(b_,i);
+    Board bb;
+    DEBUGON( bb , depth == max_depth  );
+
+    for (int i =0;  i<7 ; ++i)   {
+
+        int evald_move = move_order[i];
+
+        Branch b(b_,evald_move);
+
+
+
         if (b.isValid_) {
-            DEBUG("V");
+
             if (b_.win(player)) {
-                DEBUG2("**W**");
+
                 score =  -WIN_SCORE;
             } else {
                 if (depth < max_depth) {
@@ -153,18 +195,17 @@ int AutoPlayer::minimisePosition(
             }
 
             if (score < beta) {
-                DEBUG("B=" << score);
                 beta = score;
             }
             if (score < value) {
-                DEBUG("IDX=" << i);
                 value = score;
             }
             if (beta < alpha) {
-                DEBUG("PRUNE_MIN:" << alpha << ":" << beta);
                 break;
             }
         }
     }
+
+    // DEBUG("Value=" << value);
     return value;
 }

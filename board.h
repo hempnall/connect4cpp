@@ -19,6 +19,8 @@ struct profile {
 };
 #define PROFILE //  profile __profiler__(__PRETTY_FUNCTION__);
 
+
+
 class Board
 {
 
@@ -28,7 +30,7 @@ class Board
 
 
 public:
-
+    bool debug_;
     int player;
     Board();
     Board(int* p, int c   );
@@ -37,7 +39,7 @@ public:
     bool push_counter(int col,bool switch_pl = true);
     void pop_counter();
 
-
+    bool get_last_move(int& col, int& row);
     int win_in_direction(int player, int len,int goal, int x, int y, int dx, int dy);
     bool win_in_line(int player, int goal, int x, int y, int dx, int dy);
 
@@ -48,8 +50,16 @@ public:
     void switch_player();
 };
 
+struct DEBUGC {
+    Board& b_;
+    DEBUGC(Board&,bool cond=true);
+    ~DEBUGC();
+};
 
-
+#define DEBUGON( b ,x ) DEBUGC debugger(b,x);
+#define DEBUGOFF( b ,x ) DEBUGC debugger(b,false);
+#define DEBUG( x ) { if (debugger.b_.debug_) std::cout << "[DEBUG] " << x; }
+#define DEBUGB( x ) { if (debug_) std::cout << "[DEBUGB] " << x; }
 
 
 std::ostream& operator << (std::ostream& ostr, const Board& b);

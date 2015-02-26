@@ -3,7 +3,6 @@
 #include <iostream>
 #include <vector>
 
-#define DEBUG( x )  std::cout << "[DEBUG] " << x << std::endl;
 
 
 std::map<const char*,int> profile::func_count_;
@@ -30,7 +29,7 @@ void profile::print() {
 }
 
 Board::Board(int* p, int c)
-    : player(1)
+    : player(1),debug_(false)
 {
     memset( board ,0, 42 * sizeof(int));
     std::vector<int> moves(p,p+c);
@@ -43,7 +42,7 @@ Board::Board(int* p, int c)
 }
 
 Board::Board()
-    : player(1)
+    : player(1),debug_(false)
 {
     memset( board ,0, 42 * sizeof(int));
 
@@ -59,11 +58,9 @@ bool Board::push_counter(int col,bool switch_pl)   {
     }
 
     board[col][colheights[col]]=player;
-    //check_for_win(col,@colheights[col])
     colheights[col] += 1;
 
 
-   // std::cout << "[push] " << col << std::endl;
     moves.push(  col );
 
 
@@ -88,30 +85,21 @@ void Board::pop_counter()   {
 
 
 std::ostream& operator<< (std::ostream& ostr, const Board& b)  {
-
     PROFILE;
-
     for (int row=5;row>=0;row--)    {
         //# draw board upside down
-
         for (int col=0;col < 7;++col)   {
-
             ostr <<  b.board[col][row] << " ";
         }
-
         ostr << std::endl;
-
     }
-
     return ostr;
 }
 
 int Board::win_in_direction(int player, int len,int goal, int x, int y, int dx, int dy) {
     PROFILE;
-
     if (len == goal)   {
         return 0;
-
     } else if (x<0||x>6||y<0||y>5)  {
         return 0 ;
     } else if (board[x][y] == player)   {
@@ -124,13 +112,11 @@ int Board::win_in_direction(int player, int len,int goal, int x, int y, int dx, 
 
 bool Board::win_in_line(int player,  int goal, int x, int y, int dx, int dy) {
     PROFILE;
-
     int win1 = win_in_direction(player,0,goal,x,y,dx,dy);
-  //  std::cout << "win1=" << win1 ;
-    if (win1 == goal) return true;
+    if (win1 == goal) {
+        return true;
+    }
     int win2 =   win_in_direction(player, 0,goal,x,y,-dx,-dy) -1;
-   // std::cout << "win2=" << win2 ;
-
     if ((win1 + win2) == goal) return true;
     return false;
 }
@@ -142,7 +128,7 @@ bool Board::win(int col, int row, int plyr) {
     if 	(   win_in_line(plyr,4,col,row,-1,1) ||
             win_in_line(plyr,4,col,row,-1,0)   ||
             win_in_line(plyr,4,col,row,-1,-1) ||
-            4 == win_in_direction(plyr,0,4,col,row,0,-1)
+            win_in_line(plyr,4,col,row,0,-1)
 
          )
     {
@@ -166,16 +152,28 @@ bool Board::win() {
 
 }
 
-bool Board::win(int plyr)    {
-    PROFILE;
+bool Board::get_last_move(int& col, int& row) {
 
     if (moves.size() == 0)  {
         return false;
     }
 
     int lastmove = moves.top();
-    int col = moves.top();
-    int row = colheights[lastmove]-1;
+    col = moves.top();
+    row = colheights[lastmove]-1;
+
+    return true;
+}
+
+bool Board::win(int plyr)    {
+    PROFILE;
+
+    int col = 0;
+    int row = 0;
+
+    if (!get_last_move(col,row)) {
+        return false;
+    }
 
     return win(col,row,plyr);
 
@@ -186,5 +184,13 @@ void Board::switch_player() {
     player = 3 - player;
 }
 
+DEBUGC::DEBUGC(Board& b,bool cond)
+    : b_(b)
+{
+    b.debug_ = cond;
+}
+DEBUGC::~DEBUGC()   {
+    b_.debug_ = false;
+}
 
 
