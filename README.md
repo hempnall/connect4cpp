@@ -4,6 +4,7 @@ Plays a half decent game of connect 4. Looks 8 moves ahead and follows the Minim
 
 It did lose in this game :-(
 
+```
 0 0 0 0 0 0 0 
 0 0 0 0 0 0 0 
 0 0 0 0 0 0 0 
@@ -357,5 +358,5 @@ move entered = 1
 0 2 2 2 1 1 1 
 0 1 2 1 1 1 2 
 Press <RETURN> to close this window...
-
+```
 
